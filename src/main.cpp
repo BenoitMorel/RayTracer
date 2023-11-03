@@ -4,6 +4,9 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <limits>
+#include <random>
+
 
 /*
  *  A few unit tests
@@ -74,12 +77,9 @@ class Ray {
 };
 
 struct Hit {
-  Hit() {}
-  Hit(const Vec3 &point, const Vec3 &normal):
-    point(point),
-    normal(normal) {}
-  Vec3 point;
+  Hit(): dist(std::numeric_limits<double>::max()) {}
   Vec3 normal;
+  double dist;
 };
 
 class Shape {
@@ -111,6 +111,13 @@ class Sphere : public Shape {
         // no hit with the sphere
         return false;
       }
+      auto P1PCnorm = sqrt(P1PCSQuare);
+      auto dist1 = normOPc - P1PCnorm;
+      auto P1 = ray.origin() + ray.direction() * dist1;
+      if (dist1 < hit.dist) {
+        hit.dist = dist1;
+        hit.normal = (_center - P1).getNormalized();
+      }
       return true;
     }
     const Vec3& center() const {return _center;}
@@ -138,10 +145,15 @@ class Shapes {
 
 };
 
+double getUnitRand() {
+  
+}
+
 int main(int, char **)
 {
   unittest();
   
+  unsigned int raysPerPixel = 10;
   // eye and window positions
   double focalLength = 1.0;
   Vec3 eye(0.0, 0.0, -1.0);
@@ -149,19 +161,23 @@ int main(int, char **)
   Vec3 eyeDir(focusPoint - eye);
 
   Vec3 eyeUpDir(0.0, 1.0, 0.0);
-  Vec3 eyeRightDir = 
+  Vec3 eyeRightDir = eyeDir ^ eyeUpDir; 
 
 
   double vpWidth = 3.0;
   double vpHeight = 2.0;
-  unsigned int imageWidth = 600;
-  unsigned int imageHeight = 400;
-  
+  unsigned int imageWidth = 60;
+  unsigned int imageHeight = 40;
+    
+  std::random_device rd; 
+  std::mt19937 gen(rd()); 
+  std::uniform_real_distribution<double> dis(0.0, 1.0); 
 
   // init the shapes 
   Shapes shapes;
-  Sphere sphere1(Vec3(0, 5, 50.0), 5.0); shapes.addShape(sphere1);
-  Sphere sphere2(Vec3(-15, 5, 50.0), 5.0); shapes.addShape(sphere2);
+  double smallRadius = 20;
+  Sphere sphere1(Vec3(0, smallRadius, 50.0), smallRadius); shapes.addShape(sphere1);
+  Sphere sphere2(Vec3(-35, smallRadius, 50.0), smallRadius); shapes.addShape(sphere2);
   double bigRadius = 1000;
   Sphere sphere3(Vec3(0, -bigRadius, 50.0), bigRadius); shapes.addShape(sphere3);
  
@@ -172,23 +188,29 @@ int main(int, char **)
   Vec3 vpCenter = eye + eyeDir.getNormalized() * focalLength;
   for (unsigned int x = 0; x < image.width(); ++x) {
     for (unsigned int y = 0; y < image.height(); ++y) {
-      double xratio = (double(x) + 0.5) / double(image.width());
-      double yratio = (double(y) + 0.5) / double(image.height());
-      
-      Vec3 cell = vpCenter;
-      cell += eyeRightDir * (vpWidth * (0.5 - xratio));
-      cell += eyeUpDir * (vpHeight * (0.5 - yratio));
-      
-      Ray ray(eye, cell - eye);
-
-      Vec3 color(xratio, yratio, .5);
-      Hit hit;
-      if (shapes.hit(ray, hit)) {
-        color = Vec3(1.0, 1.0, 1.0);
-        hits += 1;
+      Vec3 averageColor;
+      for (unsigned int it = 0; it < raysPerPixel; ++it) {
+        Vec3 cell = vpCenter;
+        double xratio = (double(x) + dis(gen)) / double(image.width());
+        double yratio = (double(y) + dis(gen)) / double(image.height());
+        cell += eyeRightDir * (vpWidth * (0.5 - xratio));
+        cell += eyeUpDir * (vpHeight * (0.5 - yratio));
+        Ray ray(eye, cell - eye);
+        Vec3 color(xratio, yratio, .5);
+        Hit hit;
+        if (shapes.hit(ray, hit)) {
+          color = hit.normal;
+          color[0] += 1.0;
+          color[1] += 1.0;
+          color[2] += 1.0;
+          color *= 0.5;
+          hits += 1;
+        }
+        color *= 256;
+        averageColor += color;
       }
-      color *= 256;
-      image(x, y) = color;
+      averageColor /= double(raysPerPixel);
+      image(x, y) = averageColor;
     }
   }
   std::cout << double(hits) / double(image.width() * image.height()) << " hits " << std::endl;
