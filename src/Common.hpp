@@ -4,6 +4,8 @@
  #include <random>
  #include "Vec3.hpp"
 
+ class Shape;
+
 class Ray {
   public: 
     Ray(const Vec3 &origin, const Vec3 &direction): _o(origin), _d(direction) {
@@ -14,13 +16,14 @@ class Ray {
   private:
     Vec3 _o;
     Vec3 _d;
-
 };
 
 struct Hit {
-  Hit(): dist(std::numeric_limits<double>::max()) {}
+  Hit(): dist(std::numeric_limits<double>::max()),
+    shape(nullptr) {}
   Vec3 point;
   Vec3 normal;
   double dist;
+  const Shape * shape;
 };
 
