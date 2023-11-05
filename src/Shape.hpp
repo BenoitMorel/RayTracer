@@ -36,8 +36,9 @@ class Sphere : public Shape {
       auto dist1 = normOPc - P1PCnorm;
       auto P1 = ray.origin() + ray.direction() * dist1;
       if (dist1 < hit.dist) {
+        hit.point = P1;
         hit.dist = dist1;
-        hit.normal = (_center - P1).getNormalized();
+        hit.normal = (P1 - _center).getNormalized();
       }
       return true;
     }

@@ -1,6 +1,7 @@
 #pragma once
 
  #include <limits>
+ #include <random>
  #include "Vec3.hpp"
 
 class Ray {
@@ -18,6 +19,8 @@ class Ray {
 
 struct Hit {
   Hit(): dist(std::numeric_limits<double>::max()) {}
+  Vec3 point;
   Vec3 normal;
   double dist;
 };
+

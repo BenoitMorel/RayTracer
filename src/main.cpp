@@ -2,6 +2,7 @@
 #include <assert.h>
 #include "Common.hpp"
 #include "Shape.hpp"
+#include "Camera.hpp"
 
 
 /*
@@ -26,15 +27,21 @@ int main(int argc, char **argv)
 {
   unittest();
 
+  std::cout << "Start ray racing" << std::endl;
   // init the shapes 
   Shapes shapes;
   double smallRadius = 10.0;
-  Sphere sphere1(Vec3(0, smallRadius, 50.0), smallRadius); shapes.addShape(sphere1);
-  Sphere sphere2(Vec3(-35, smallRadius, 50.0), smallRadius); shapes.addShape(sphere2);
+
+  auto R = cos(PI/4.0);
+  Sphere sphere1(Vec3(0.0,    0.0, -.0), 0.5); shapes.addShape(sphere1);
+  Sphere bigSphere(Vec3(0.0, -100.5, -1.0), 100.0); shapes.addShape(bigSphere);
+  //Sphere sphere1(Vec3(0, smallRadius, 50.0), smallRadius); shapes.addShape(sphere1);
+  //Sphere sphere2(Vec3(-35, smallRadius, 50.0), smallRadius); shapes.addShape(sphere2);
   double bigRadius = 1000;
-  Sphere sphere3(Vec3(0, -bigRadius, 50.0), bigRadius); shapes.addShape(sphere3);
+  //Sphere sphere3(Vec3(0, -bigRadius, 50.0), bigRadius); shapes.addShape(sphere3);
  
-  Camera camera(1.5, 200);
+  Camera camera(1, 200, 20);
   camera.render(shapes);
+  std::cout << "done" << std::endl;
   return 0;
 }
