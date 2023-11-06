@@ -1,7 +1,7 @@
 #pragma once 
 #include <vector>
 #include "Common.hpp"
-
+#include <memory>
 
 class Material {
     public:
@@ -52,7 +52,12 @@ class Shape {
 
 class Sphere : public Shape {
   public:
-    Sphere(const Vec3 &center, double radius): _center(center), _radius(radius), _radiusSquare(_radius * _radius) {}
+    Sphere(const Vec3 &center, double radius, const Material &material): 
+      _center(center), 
+      _radius(radius), 
+      _radiusSquare(_radius * _radius) {
+        setMaterial(material);
+      }
     virtual ~Sphere() {}
     virtual bool hit(const Ray &ray, double minDist, Hit &hit) const {
       // O is the origin, C the center
@@ -88,7 +93,14 @@ class Sphere : public Shape {
       return true;
     }
     const Vec3& center() const {return _center;}
+    
     double radius() const {return _radius;}
+
+    bool intersect(const Sphere &other) {
+      auto d = (other.center() - center()).norm();
+      return d < (radius() + other.radius());
+    }
+
   private:
     Vec3 _center;
     double _radius;
@@ -99,7 +111,7 @@ class Shapes : public Shape {
   public:
     Shapes() {}
     virtual ~Shapes() {}
-    void addShape(Shape &shape) {_shapes.push_back(&shape);}
+    void addShape(std::shared_ptr<Shape> shape) {_shapes.push_back(shape);}
     virtual bool hit(const Ray &ray, double minDist, Hit &hit) const {
       bool ok = false;
       for (auto shape: _shapes) {
@@ -108,7 +120,7 @@ class Shapes : public Shape {
       return ok;
     }
   private:
-    std::vector<Shape *> _shapes;
+    std::vector<std::shared_ptr<Shape> > _shapes;
 
 };
 

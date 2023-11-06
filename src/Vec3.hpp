@@ -5,10 +5,12 @@
 /*
  * Generate a random number 
 */
-inline double getRand(double min = 0.0, double max = 1.0) {
-    static std::uniform_real_distribution<double> distribution(min, max);
+inline double getRand(double mi = 0.0, double ma = 1.0) {
     static std::mt19937 generator;
-    return distribution(generator);
+    std::uniform_real_distribution<double> distribution(mi, ma);
+    auto res = distribution(generator);
+    //std::cout << mi << " " << ma << " " << res << std::endl;
+    return res;
 }
 
 class Vec3 {

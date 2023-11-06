@@ -7,6 +7,7 @@
 #include <fstream>
 #include <limits>
 #include <random>
+#include <thread>
 #include "Common.hpp"
 #include "Shape.hpp"
 #include "Image.hpp"
@@ -22,20 +23,22 @@ class Camera {
     /**
      * Constructor
     */
-    Camera(double aspectRatio = 1.5, unsigned int imageWidth = 10, double vfov = 90.0, unsigned int raysPerPixel = 10): 
+    Camera(double aspectRatio, unsigned int imageWidth, double vfov, unsigned int raysPerPixel,
+    const Vec3 &lookFrom, const Vec3 &lookAt, unsigned int cores): 
       _aspectRatio(aspectRatio),
       _vfov(vfov),
       _raysPerPixel(raysPerPixel),
       _imageWidth(imageWidth),
-      _lookFrom(-2, 2, 1),
-      _lookAt(0.0, 0.0, -1.0),
-      _lookUp(0.0, 1.0, 0.0)
+      _lookFrom(lookFrom),
+      _lookAt(lookAt),
+      _lookUp(0.0, 1.0, 0.0),
+      _cores(cores)
     {
 
 
     }
 
-    Vec3 getRayColor(const Ray &ray, const Shape &world, unsigned int depth) {
+    Vec3 getRayColor(const Ray &ray, const Shape &world, unsigned int depth) const {
         auto color = Vec3(0.0, 0.0, 0.0);
         if (depth > 10) {
             return color;
@@ -58,7 +61,11 @@ class Camera {
                 auto newDirection = ray.direction() - hit.normal * (hit.normal * ray.direction()) * 2.0;
                 newDirection += Vec3::getRandomUnitVector() * material.getFuzz();
                 Ray newRay(hit.point, newDirection);
-                color += getRayColor(newRay, world, depth + 1) * material.getReflection();
+                auto temp = getRayColor(newRay, world, depth + 1) * material.getReflection();
+                for (unsigned int i = 0; i < 3; ++i) {
+                  temp[i] *= material.getColor()[i];
+                }
+                color += temp;
             }
         } else {
             auto t = 0.5 * (ray.direction()[1] + 1.0);
@@ -69,7 +76,7 @@ class Camera {
     }
 
 
-    Ray getRay(unsigned int x, unsigned int y) {
+    Ray getRay(unsigned int x, unsigned int y) const {
       std::random_device rd; 
       std::mt19937 gen(rd()); 
       std::uniform_real_distribution<double> dis(0.0, 1.0);
@@ -83,33 +90,51 @@ class Camera {
       return Ray(_lookFrom, cell - _lookFrom);
     }
 
+    void plop(const Shape &world) const {
+     
+    }
     void render(const Shape &world) {
       _updateParameters();
-      unsigned int hits = 0; 
       Image image(_imageWidth, _imageHeight);
-      for (unsigned int x = 0; x < _imageWidth; ++x) {
-        for (unsigned int y = 0; y < _imageHeight; ++y) {
-          Vec3 averageColor;
-          for (unsigned int it = 0; it < _raysPerPixel; ++it) {
-            auto ray = getRay(x, y);
-            averageColor += getRayColor(ray, world, 0);
-          }
-          // average
-          averageColor /= double(_raysPerPixel);
-          // linear to scalar scale
-          averageColor[0] = sqrt(averageColor[0]);
-          averageColor[1] = sqrt(averageColor[1]);
-          averageColor[2] = sqrt(averageColor[2]);
-          // from [0,1] to [0, 255]
-          averageColor *= 255.0;
-          image(x, y) = averageColor;
-        }
+      unsigned int pixelsNumber = _imageWidth * _imageHeight;
+      std::vector<std::thread> threads;
+      unsigned int threadsNumber = _cores;
+      unsigned int chunkSize = pixelsNumber / threadsNumber;
+      for (unsigned int i = 0; i < threadsNumber; ++i) {
+          unsigned int start = i * chunkSize;
+          unsigned int end = (i == threadsNumber - 1) ? pixelsNumber : (i + 1) * chunkSize;
+          threads.push_back(std::thread(&Camera::renderAux, this, std::ref(world), std::ref(image), start, end));
       }
-      std::cout << double(hits) / double(image.width() * image.height() * _raysPerPixel) << " hit ratio " << std::endl;
+      for (auto &thread: threads) {
+        thread.join();
+      }
       // save
       std::string output = "C:\\Users\\benom\\github\\RayTracer\\src\\output.ppm";
       std::cout << "Output in " << output << std::endl;
       image.writePPM(output);
+    }
+
+    void renderAux(const Shape &world, Image &image, unsigned int start, unsigned int end)  const {
+      for (unsigned int i = start; i < end; ++i) {
+        unsigned int x = i % _imageWidth;
+        unsigned int y = i / _imageWidth;
+        Vec3 averageColor;
+        for (unsigned int it = 0; it < _raysPerPixel; ++it) {
+          auto ray = getRay(x, y);
+          averageColor += getRayColor(ray, world, 0);
+        }
+        // average
+        averageColor /= double(_raysPerPixel);
+        // linear to scalar scale
+        /*
+        averageColor[0] = sqrt(averageColor[0]);
+        averageColor[1] = sqrt(averageColor[1]);
+        averageColor[2] = sqrt(averageColor[2]);
+        */
+        // from [0,1] to [0, 255]
+        averageColor *= 255.0;
+        image(x, y) = averageColor;
+      }
     }
 
   private:
@@ -152,4 +177,5 @@ class Camera {
     Vec3 _cellOffsetRight; // offset of one window cell (pixel) to the right
     Vec3 _cellOffsetDown; // offset of one window cell (pixel) below
     Vec3 _vpCorner; // position of the top left corner of the viewport 
+    unsigned int _cores;
 };
