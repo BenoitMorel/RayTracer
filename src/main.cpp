@@ -32,15 +32,18 @@ int main(int argc, char **argv)
   Shapes shapes;
   auto R = cos(PI/4.0);
   Material defaultMaterial;
-  Material greenMetal(0.0, 0.5, 0.0, 0.5, Vec3(0.5, 1.0, 0.5));
-  Material blueStuff(0.2, 0.0, 0.3, 0.5, Vec3(0.5, 0.5, 1.0));
-  Material redStuff(0.2, 0.0, 0.3, 0.5, Vec3(1.0, 0.5, 0.5));
-  Sphere sphere1(Vec3(0.0, 0.0, -1.0), 0.5); sphere1.setMaterial(greenMetal); shapes.addShape(sphere1);
-  Sphere sphere2(Vec3(-1.0, 0.0, -1.0), 0.5); sphere2.setMaterial(blueStuff); shapes.addShape(sphere2);
-  Sphere sphere3(Vec3(1.0, 0.0, -1.0), 0.5); shapes.addShape(sphere3);
-  Sphere bigSphere(Vec3(0.0, -100.5, -1.0), 100.0); shapes.addShape(bigSphere);
+  Material ambiantGreen(0.0, 0.0, 0.0, 1.0, Vec3(0., 1.0, 0.));
+  Material greenMetal(0.0, 0.5, 0.0, 0.5, Vec3(0., 1.0, 0.));
+  greenMetal.setFuzz(0.1);
+  Material blueStuff(0.0, 0.0, 0.3, 0.5, Vec3(0., 0., 1.0));
+  Material redStuff(0.0, 0.0, 0.0, 0.5, Vec3(1.0, 0., 0.));
+  Material mirror(0.2, 0.8, 0.0, 0.0, Vec3(1, 1, 1));
+  Sphere sphere1(Vec3(-1.0, 0.0, -1.0), 0.5); sphere1.setMaterial(redStuff); shapes.addShape(sphere1);
+  Sphere sphere2(Vec3(0.0, 0.0, -1.0), 0.5); sphere2.setMaterial(greenMetal); shapes.addShape(sphere2);
+  //Sphere sphere3(Vec3(1.0, 0.0, -1.0), 0.5); sphere3.setMaterial(blueStuff); shapes.addShape(sphere3);
+  Sphere bigSphere(Vec3(0.0, -100.5, -1.0), 100.0); bigSphere.setMaterial(mirror); shapes.addShape(bigSphere);
  
-  Camera camera(1, 200, 20);
+  Camera camera(1, 400, 60, 10);
   camera.render(shapes);
   std::cout << "done" << std::endl;
   return 0;

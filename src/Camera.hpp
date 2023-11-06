@@ -22,9 +22,9 @@ class Camera {
     /**
      * Constructor
     */
-    Camera(double aspectRatio = 1.5, unsigned int imageWidth = 10, unsigned int raysPerPixel = 10): 
+    Camera(double aspectRatio = 1.5, unsigned int imageWidth = 10, double vfov = 90.0, unsigned int raysPerPixel = 10): 
       _aspectRatio(aspectRatio),
-      _vfov(45),
+      _vfov(vfov),
       _raysPerPixel(raysPerPixel),
       _imageWidth(imageWidth),
       _lookFrom(-2, 2, 1),
@@ -37,17 +37,16 @@ class Camera {
 
     Vec3 getRayColor(const Ray &ray, const Shape &world, unsigned int depth) {
         auto color = Vec3(0.0, 0.0, 0.0);
-        if (depth > 5) {
+        if (depth > 10) {
             return color;
         }
         
         Hit hit;
         const double minDist = 0.00001;
         if (world.hit(ray, minDist, hit)) {
-            const bool diffuse = true;
             const auto &material = hit.shape->getMaterial();
             if (material.getAmbiant() > 0.0) {
-              color += material.getColor();
+              color += material.getColor() * material.getAmbiant();
             }
             if (material.getDiffusion() > 0.0) {
                 auto newDirection = hit.normal + Vec3::getRandomUnitVector();
@@ -57,20 +56,10 @@ class Camera {
             }
             if (material.getReflection() > 0.0) {
                 auto newDirection = ray.direction() - hit.normal * (hit.normal * ray.direction()) * 2.0;
+                newDirection += Vec3::getRandomUnitVector() * material.getFuzz();
                 Ray newRay(hit.point, newDirection);
                 color += getRayColor(newRay, world, depth + 1) * material.getReflection();
             }
-            
-            /*
-             else {
-                color = hit.normal;
-                color[0] += 1.0;
-                color[1] += 1.0;
-                color[2] += 1.0;
-                color *= 0.5;
-                }
-                */
-            
         } else {
             auto t = 0.5 * (ray.direction()[1] + 1.0);
             color = Vec3(1.0, 1.0, 1.0) * (1.0-t) + Vec3(0.5, 0.5, 1.) * t;
@@ -105,12 +94,14 @@ class Camera {
             auto ray = getRay(x, y);
             averageColor += getRayColor(ray, world, 0);
           }
+          // average
+          averageColor /= double(_raysPerPixel);
           // linear to scalar scale
           averageColor[0] = sqrt(averageColor[0]);
           averageColor[1] = sqrt(averageColor[1]);
           averageColor[2] = sqrt(averageColor[2]);
           // from [0,1] to [0, 255]
-          averageColor *= 255.0 / double(_raysPerPixel);
+          averageColor *= 255.0;
           image(x, y) = averageColor;
         }
       }

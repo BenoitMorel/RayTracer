@@ -21,6 +21,9 @@ class Material {
           _ambiant = ambiant / sum;
         }
 
+        void setFuzz(double fuzz) {_fuzz = std::min(fuzz, 1.0);}
+        double getFuzz() const {return _fuzz;}
+
         double getAbsorbtion() const {return _absorbtion;}
         double getReflection() const {return _reflection;}
         double getDiffusion() const {return _diffusion;}
@@ -33,6 +36,7 @@ class Material {
         double _diffusion;
         double _ambiant;
         Vec3 _color;
+        double _fuzz;
 };
 
 class Shape {
