@@ -111,7 +111,7 @@ class Shapes : public Shape {
   public:
     Shapes() {}
     virtual ~Shapes() {}
-    void addShape(std::shared_ptr<Shape> shape) {_shapes.push_back(shape);}
+    void addShape(Shape *shape) {_shapes.push_back(shape);}
     virtual bool hit(const Ray &ray, double minDist, Hit &hit) const {
       bool ok = false;
       for (auto shape: _shapes) {
@@ -120,7 +120,7 @@ class Shapes : public Shape {
       return ok;
     }
   private:
-    std::vector<std::shared_ptr<Shape> > _shapes;
+    std::vector<Shape *> _shapes;
 
 };
 

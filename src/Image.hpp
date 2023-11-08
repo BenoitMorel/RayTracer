@@ -38,6 +38,33 @@ class Image {
         os << int(p[0]) << " " << int(p[1]) << " " << int(p[2]) << std::endl;
       }
     }
+
+    // this is far from being optimal...
+    void blur() {
+      Image temp = *this;
+      for (unsigned int j = 1; j < _h - 1; ++j) {
+        for (unsigned int i = 1; i < _w - 1; ++i) {
+          temp(i, j) = Vec3();
+          for (int jj = -1; jj < 2; ++jj) {
+            for (int ii = -1; ii < 2; ++ii) {
+              temp(i, j) += (*this)(i + ii, j + jj) / 9.0;
+            }
+          }
+        }
+      }
+      std::swap(temp._pixels, _pixels);
+    }
+
+    void cartoonize(unsigned int colorValues) {
+      auto chunk = 256 / colorValues;
+      for (auto &color: _pixels) {
+        for (unsigned int i = 0; i < 3; ++i) {
+          unsigned int v = static_cast<unsigned int>(color[i]);
+          v = v - (v % chunk); 
+          color[i] = static_cast<double>(v);
+        }
+      }
+    }
   private:
     unsigned int _w;
     unsigned int _h;

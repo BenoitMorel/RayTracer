@@ -38,7 +38,7 @@ public:
       _spheres.push_back(sphere);
   }
 private:
-  std::vector<std::shared_ptr<Sphere> > _spheres;
+  std::vector<std::shared_ptr<Sphere> >_spheres;
 };
 
 int main(int argc, char **argv)
@@ -50,42 +50,38 @@ int main(int argc, char **argv)
   // init the shapes 
   Shapes shapes;
   Material defaultMaterial;
-  Material ambiantGreen(0.0, 0.0, 0.0, 1.0, Vec3(0., 1.0, 0.));
   Material diffuseGreen(0.0, 0.0, 1.0, 0.0, Vec3(0., 0.5, 0.));
   Material greenMetal(0.0, 0.5, 0.0, 0.0, Vec3(0., 0.5, 0.));
-  //greenMetal.setFuzz(0.1);
-  Material blueStuff(0.0, 0.0, 0.3, 0.5, Vec3(0., 0., 1.0));
-  Material redStuff(0.0, 0.0, 0.0, 0.5, Vec3(1.0, 0., 0.));
-  Material greyStuff(0.0, 0.0, 0.5, 0.5, Vec3(0.7, 0.7, 0.7));
+  Material blueStuff(0.0, 0.0, 0.3, 0.5, Vec3(0., 0., 0.7));
+  Material redStuff(0.0, 0.0, 1.0, 0.0, Vec3(0.7, 0., 0.));
   Material mirror(0.0, 1.0, 0.0, 0.0, Vec3(1, 1, 1));
-  Material redReflectiveBall(0.0, 0.8, 0.0, 0.2, Vec3(1, 0, 0));
   CollisionChecker collisionChecker;
   // ground
-  auto ground = std::make_shared<Sphere>(Vec3(0.0, -1000.0, 1.0), 1000, greenMetal);
-  shapes.addShape(ground);
+  auto ground = std::make_shared<Sphere>(Vec3(0.0, -1000.0, 1.0), 1000, blueStuff);
+  shapes.addShape(ground.get());
   collisionChecker.addSphere(ground);
   // reflective big ball
-  auto bigBall = std::make_shared<Sphere>(Vec3(0, 2.0  , 3.0), 2.0, mirror);
-  shapes.addShape(bigBall);
+  auto bigBall = std::make_shared<Sphere>(Vec3(0, 2.0  , 3.0), 2.0, redStuff);
+  shapes.addShape(bigBall.get());
   collisionChecker.addSphere(bigBall);
   
 
   unsigned int addedSpheres = 0;
-  while (addedSpheres < 30) {
+  while (addedSpheres < 20) {
     auto x = getRand(-5.0, 5.0);
-    double radius = 0.4;
-    auto z = getRand(-10.0, 10.0);
+    double radius = 0.7;
+    auto z = getRand(-5.0, 10.0);
     std::shared_ptr<Material> material;
     Vec3 color = Vec3::getRandomVector(0.0, 1.0);
     auto r = getRand();
     if (r < 1.0) {
-      material = std::make_shared<Material>(0.0, 0.0, 0.6, 0.4, color);
+      material = std::make_shared<Material>(0.0, 0.0, 0.8, 0.2, color);
     } else {
       material = std::make_shared<Material>(0.0, 1.0, 0.0, 0.0, Vec3(1.0, 1.0, 1.0));
     }
     auto shape = std::make_shared<Sphere>(Vec3(x, radius, z), radius, *material);
     if (collisionChecker.canAddSphere(shape)) {
-      shapes.addShape(shape);
+      shapes.addShape(shape.get());
       collisionChecker.addSphere(shape);
       addedSpheres++;
     } 
@@ -94,7 +90,7 @@ int main(int argc, char **argv)
   double fov = 25;
   double raysPerPixel = 100;
   double aspectRatio = 1.5;
-  unsigned int imageWidth = 2000;
+  unsigned int imageWidth = 1200;
   Vec3 lookFrom(0, 6, -20);
   Vec3 lookAt(0.0, 1.0, 0.0);
   unsigned int cores = 10;

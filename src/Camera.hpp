@@ -73,7 +73,7 @@ class Camera {
             }
         } else {
             auto t = 0.5 * (ray.direction()[1] + 1.0);
-            color = Vec3(1.0, 1.0, 1.0) * (1.0-t) + Vec3(0.5, 0.5, 1.) * t;
+            color = Vec3(1.0, 1.0, 0.1) * (1.0-t) + Vec3(0.7, 0.7, 1.) * t;
             //color = Vec3(0.5, 0.5, 1.);
         }
         return color;
@@ -111,6 +111,8 @@ class Camera {
               thread.join();
           }
       }
+      //image.blur();
+      //image.cartoonize(8);
       // save
       std::string output = "C:\\Users\\benom\\github\\RayTracer\\src\\output.ppm";
       std::cout << "Output in " << output << std::endl;
