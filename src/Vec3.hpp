@@ -9,7 +9,6 @@ inline double getRand(double mi = 0.0, double ma = 1.0) {
     static std::mt19937 generator;
     std::uniform_real_distribution<double> distribution(mi, ma);
     auto res = distribution(generator);
-    //std::cout << mi << " " << ma << " " << res << std::endl;
     return res;
 }
 

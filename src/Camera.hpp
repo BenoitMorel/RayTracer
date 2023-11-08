@@ -29,12 +29,14 @@ class Camera {
       _vfov(vfov),
       _raysPerPixel(raysPerPixel),
       _imageWidth(imageWidth),
+      _imageHeight(0),
       _lookFrom(lookFrom),
       _lookAt(lookAt),
       _lookUp(0.0, 1.0, 0.0),
+      _vpWidth(0.0),
+      _vpHeight(0.0),
       _cores(cores)
     {
-
 
     }
 
@@ -48,6 +50,7 @@ class Camera {
         const double minDist = 0.00001;
         if (world.hit(ray, minDist, hit)) {
             const auto &material = hit.shape->getMaterial();
+            
             if (material.getAmbiant() > 0.0) {
               color += material.getColor() * material.getAmbiant();
             }
@@ -57,13 +60,14 @@ class Camera {
                 color += getRayColor(newRay, world, depth + 1) * material.getDiffusion();
                 // TODO near zero
             }
+            
             if (material.getReflection() > 0.0) {
                 auto newDirection = ray.direction() - hit.normal * (hit.normal * ray.direction()) * 2.0;
                 newDirection += Vec3::getRandomUnitVector() * material.getFuzz();
                 Ray newRay(hit.point, newDirection);
                 auto temp = getRayColor(newRay, world, depth + 1) * material.getReflection();
                 for (unsigned int i = 0; i < 3; ++i) {
-                  temp[i] *= material.getColor()[i];
+                    temp[i] *= material.getColor()[i];
                 }
                 color += temp;
             }
@@ -77,11 +81,8 @@ class Camera {
 
 
     Ray getRay(unsigned int x, unsigned int y) const {
-      std::random_device rd; 
-      std::mt19937 gen(rd()); 
-      std::uniform_real_distribution<double> dis(0.0, 1.0);
-      double rightFactor = static_cast<double>(x) + dis(gen) - 0.5;
-      double downFactor = static_cast<double>(y) + dis(gen) - 0.5;
+      double rightFactor = static_cast<double>(x) + getRand(-0.5, 0.5);
+      double downFactor = static_cast<double>(y) + getRand(-0.5, 0.5);
       if (_raysPerPixel == 1) {
         rightFactor = static_cast<double>(x);
         downFactor = static_cast<double>(y);
@@ -90,9 +91,7 @@ class Camera {
       return Ray(_lookFrom, cell - _lookFrom);
     }
 
-    void plop(const Shape &world) const {
-     
-    }
+
     void render(const Shape &world) {
       _updateParameters();
       Image image(_imageWidth, _imageHeight);
@@ -100,13 +99,17 @@ class Camera {
       std::vector<std::thread> threads;
       unsigned int threadsNumber = _cores;
       unsigned int chunkSize = pixelsNumber / threadsNumber;
-      for (unsigned int i = 0; i < threadsNumber; ++i) {
-          unsigned int start = i * chunkSize;
-          unsigned int end = (i == threadsNumber - 1) ? pixelsNumber : (i + 1) * chunkSize;
-          threads.push_back(std::thread(&Camera::renderAux, this, std::ref(world), std::ref(image), start, end));
-      }
-      for (auto &thread: threads) {
-        thread.join();
+      if (_cores == 1) {
+          renderAux(world, image, 0, pixelsNumber);
+      } else {
+          for (unsigned int i = 0; i < threadsNumber; ++i) {
+              unsigned int start = i * chunkSize;
+              unsigned int end = (i == threadsNumber - 1) ? pixelsNumber : (i + 1) * chunkSize;
+              threads.push_back(std::thread(&Camera::renderAux, this, std::ref(world), std::ref(image), start, end));
+          }
+          for (auto& thread : threads) {
+              thread.join();
+          }
       }
       // save
       std::string output = "C:\\Users\\benom\\github\\RayTracer\\src\\output.ppm";
