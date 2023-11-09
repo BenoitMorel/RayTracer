@@ -92,12 +92,12 @@ int main(int argc, char **argv)
   }
 
   double fov = 25;
-  double raysPerPixel = 100;
+  double raysPerPixel = 10;
   double aspectRatio = 1.5;
-  unsigned int imageWidth = 800;
+  unsigned int imageWidth = 400;
   Vec3 lookFrom(0, 6, -20);
   Vec3 lookAt(0.0, 1.0, 0.0);
-  unsigned int cores = 10;
+  unsigned int cores = 1;
   shapes.updateBVH();
   Camera camera(aspectRatio, imageWidth, fov, raysPerPixel, lookFrom, lookAt, cores);
   camera.render(shapes);
