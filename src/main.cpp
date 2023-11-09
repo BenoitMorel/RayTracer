@@ -3,8 +3,8 @@
 #include <chrono>
 #include "Common.hpp"
 #include "Shape.hpp"
+#include "Shapes.hpp"
 #include "Camera.hpp"
-
 
 /*
  *  A few unit tests
@@ -19,6 +19,10 @@ void unittest()
   assert(v1 * v2 == 6.0);
   Vec3 cross = v1 ^ v2;
   assert(cross == Vec3(-6,6,-2));
+
+  AABB aabb(Interval(-1, 1),Interval(-1, 1), Interval(-1, 1));
+  Ray ray(Vec3(0.0, 0.0, 0.0), Vec3(1.0, 1.0, 1.0));
+  assert(aabb.hit(ray));
 }
 
 
@@ -57,9 +61,9 @@ int main(int argc, char **argv)
   Material mirror(0.0, 1.0, 0.0, 0.0, Vec3(1, 1, 1));
   CollisionChecker collisionChecker;
   // ground
-  auto ground = std::make_shared<Sphere>(Vec3(0.0, -1000.0, 1.0), 1000, blueStuff);
-  shapes.addShape(ground.get());
-  collisionChecker.addSphere(ground);
+  //auto ground = std::make_shared<Sphere>(Vec3(0.0, -1000.0, 1.0), 1000, blueStuff);
+  //shapes.addShape(ground.get());
+  //collisionChecker.addSphere(ground);
   // reflective big ball
   auto bigBall = std::make_shared<Sphere>(Vec3(0, 2.0  , 3.0), 2.0, redStuff);
   shapes.addShape(bigBall.get());
@@ -67,9 +71,9 @@ int main(int argc, char **argv)
   
 
   unsigned int addedSpheres = 0;
-  while (addedSpheres < 20) {
+  while (addedSpheres < 100) {
     auto x = getRand(-5.0, 5.0);
-    double radius = 0.7;
+    double radius = 0.3;
     auto z = getRand(-5.0, 10.0);
     std::shared_ptr<Material> material;
     Vec3 color = Vec3::getRandomVector(0.0, 1.0);
@@ -90,10 +94,11 @@ int main(int argc, char **argv)
   double fov = 25;
   double raysPerPixel = 100;
   double aspectRatio = 1.5;
-  unsigned int imageWidth = 1200;
+  unsigned int imageWidth = 800;
   Vec3 lookFrom(0, 6, -20);
   Vec3 lookAt(0.0, 1.0, 0.0);
   unsigned int cores = 10;
+  shapes.updateBVH();
   Camera camera(aspectRatio, imageWidth, fov, raysPerPixel, lookFrom, lookAt, cores);
   camera.render(shapes);
   auto end = std::chrono::high_resolution_clock::now();

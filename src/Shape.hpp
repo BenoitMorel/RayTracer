@@ -2,6 +2,7 @@
 #include <vector>
 #include "Common.hpp"
 #include <memory>
+#include "AABB.hpp"
 
 class Material {
     public:
@@ -45,9 +46,10 @@ class Shape {
     virtual void setMaterial(const Material &material) {_material = material;}
     virtual const Material &getMaterial() const {return _material;}
     virtual bool hit(const Ray &ray, double minDist, Hit &hit) const = 0;
-
-  private:
+    virtual const AABB &getAABB() const {return _aabb;}
+  protected:
     Material _material;
+    AABB _aabb;
 };
 
 class Sphere : public Shape {
@@ -57,6 +59,10 @@ class Sphere : public Shape {
       _radius(radius), 
       _radiusSquare(_radius * _radius) {
         setMaterial(material);
+        Interval aabbx(center[0] - radius, center[0] + radius); 
+        Interval aabby(center[1] - radius, center[1] + radius); 
+        Interval aabbz(center[2] - radius, center[2] + radius); 
+        _aabb = AABB(aabbx, aabby, aabbz);
       }
     virtual ~Sphere() {}
     virtual bool hit(const Ray &ray, double minDist, Hit &hit) const {
@@ -107,20 +113,4 @@ class Sphere : public Shape {
     double _radiusSquare;
 };
 
-class Shapes : public Shape {
-  public:
-    Shapes() {}
-    virtual ~Shapes() {}
-    void addShape(Shape *shape) {_shapes.push_back(shape);}
-    virtual bool hit(const Ray &ray, double minDist, Hit &hit) const {
-      bool ok = false;
-      for (auto shape: _shapes) {
-        ok |= shape->hit(ray, minDist, hit);
-      }
-      return ok;
-    }
-  private:
-    std::vector<Shape *> _shapes;
-
-};
 
