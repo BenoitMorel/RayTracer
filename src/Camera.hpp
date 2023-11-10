@@ -73,7 +73,7 @@ class Camera {
             }
         } else {
             auto t = 0.5 * (ray.direction()[1] + 1.0);
-            color = Vec3(1.0, 1.0, 0.1) * (1.0-t) + Vec3(0.7, 0.7, 1.) * t;
+            color = Vec3(1.0, 1.0, 1.0) * (1.0-t) + Vec3(0.5, 0.5, 1.0) * t;
             //color = Vec3(0.5, 0.5, 1.);
         }
         return color;
@@ -152,13 +152,10 @@ class Camera {
       auto focal = (_lookAt - _lookFrom).norm();
       _vpHeight = 2 * tan(theta / 2.0) * focal;
       _vpWidth = _vpHeight * _aspectRatio;
-      std::cout << _vpWidth << " " << _vpHeight << std::endl;
 
       auto w = (_lookFrom - _lookAt).getNormalized();
       auto u = (_lookUp ^ w).getNormalized();
       auto v = w ^ u;
-      std::cout << w << " " << u << " " << v << " " << std::endl;
-      std::cout << w * u << " " << u * v << " " << v * w << " " << std::endl;
       _cellOffsetRight = u * (_vpWidth / static_cast<double>(_imageWidth));
       _cellOffsetDown = v * (-_vpHeight / static_cast<double>(_imageHeight));
       _vpCorner = _lookAt

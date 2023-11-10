@@ -1,15 +1,20 @@
 #pragma once
-
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <math.h>
 #include "Common.hpp"
 /*
  * Generate a random number 
 */
 inline double getRand(double mi = 0.0, double ma = 1.0) {
+  // todo: find a compromise between this and c++ slow generators  
+  return mi + (rand() / ( RAND_MAX / (ma-mi) ) ) ;
+      /*
     static std::mt19937 generator;
     std::uniform_real_distribution<double> distribution(mi, ma);
     auto res = distribution(generator);
     return res;
+    */
 }
 
 class Vec3 {
@@ -88,12 +93,21 @@ class Vec3 {
     * Draw a unit vector from a uniform distribution (with rejection)
     */
     static Vec3 getRandomUnitVector() {
+      auto theta = getRand(0.0, 2.0 * M_PI);
+      auto z = getRand(-1.0, 1.0);
+      auto temp = sqrt(1 - z * z);
+      auto x = temp * cos(theta);
+      auto y = temp * sin(theta);
+      return Vec3(x, y, z);
+      /*
+      Old rejection implementation:
       while (true) {
         Vec3 res = getRandomVector(-1.0, 1.0);
         if (res.normSquare() < 1.0) {
           return res.getNormalized();
         }
       }
+      */
     }
 
     friend std::ostream& operator<<(std::ostream &os, const Vec3 &v) { os << "(" << v[0] << "," << v[1] << "," << v[2] << ")"; return os;}

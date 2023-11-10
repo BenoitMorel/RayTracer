@@ -4,7 +4,6 @@
 #include <vector>
 #include <assert.h>
 #include <algorithm>
-#include "Shape.hpp"
 #include "AABB.hpp"
 
 using ShapeSet = std::unordered_set<Shape *>;
@@ -16,12 +15,17 @@ public:
    *  @param shapes: the shapes to store
    *  @param axis the current axis (0, 1, 2 for x, y, z) to split
    */
-  BVHNode(const std::vector<Shape *> &shapes, unsigned int axis) {
+  BVHNode(const std::vector<Shape *> &shapes, unsigned int axis): _isLeaf(false) {
     assert(axis < 3);
-    if (shapes.size() == 1) {
+    for (auto shape: shapes) {
+      _aabb.unionWith(shape->getAABB());
+    }
+    if (shapes.size() <= 4) {
+      _isLeaf = true;
       // leaf case
-      _shapes.insert(shapes[0]);
-      _aabb = shapes[0]->getAABB();
+      for (auto shape: shapes) {
+        _shapes.insert(shape);
+      }
       return;
     }
     // internal node
@@ -33,11 +37,6 @@ public:
                    s2->getAABB().getInterval(axis).getCenter();
           }
         ); 
-    // update the bounding box
-    for (auto shape: shapes) {
-      _aabb.unionWith(shape->getAABB());
-    }
-    std::cout << "Box with " << shapes.size() << " shapes, " << _aabb << std::endl;
     // split the shapes in to sets of same size
     std::vector<Shape *> leftShapes;
     std::vector<Shape *> rightShapes;
@@ -57,31 +56,32 @@ public:
   /**
    *  Return true if this is a terminal node
    */
-  bool isLeaf() const {return _left.get() == nullptr;}
+  bool isLeaf() const {return _isLeaf;}
 
-  /**
-   *  Get all candidate shapes that the ray might intersect
-   */
-  void getHitCandidates(const Ray &ray, ShapeSet &candidates) const {
+  bool hit(const Ray &ray, double minDist, Hit &hit) const {
+ // void getHitCandidates(const Ray &ray, ShapeSet &candidates) const {
+    bool ok = false;
     if (isLeaf()) {
       // leaf case
       for (auto shape: _shapes) {
-        candidates.insert(shape);
+        ok |= shape->hit(ray, minDist, hit);
       }   
-      return;
+      return ok;
     }
     // internal node case
     if (!_aabb.hit(ray)) {
       // no intersection with the shapes under this node
-      return;
+      return false;
     }
     // there might be some intersection, continue the traversal
     assert(_left.get());
     assert(_right.get());
-    _left->getHitCandidates(ray, candidates);
-    _right->getHitCandidates(ray, candidates);
+    ok |= _left->hit(ray, minDist, hit);
+    ok |= _right->hit(ray, minDist, hit);
+    return ok;
   }
 private:
+  bool _isLeaf;
   std::shared_ptr<BVHNode> _left;
   std::shared_ptr<BVHNode> _right;
   ShapeSet _shapes; // only relevant for the leaves
@@ -93,7 +93,7 @@ private:
  *  Structure used to access the list of shapes that a ray might
  *  intersect in log(n) where n is the number of shapes.
  */
-class BVH {
+class BVH: public Shape {
 public:
   /**
    *  Constructor
@@ -101,11 +101,8 @@ public:
    */
   BVH(const std::vector<Shape *> &shapes): _root(shapes, 0) { }
   
-  /**
-   *  Return all the shapes that the ray might interesct (log complexity)
-   */
-  void getHitCandidates(const Ray &ray, ShapeSet &candidates) const {
-    _root.getHitCandidates(ray, candidates);
+  virtual bool hit(const Ray &ray, double minDist, Hit &hit) const {
+    return _root.hit(ray, minDist, hit);
   }
 private:
   BVHNode _root; // root of the binary tree
