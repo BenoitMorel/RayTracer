@@ -65,6 +65,7 @@ int main(int, char **)
   Material blueStuff(0.0, 0.0, 0.3, 0.5, Vec3(0., 0., 0.7));
   Material redStuff(0.0, 0.0, 0.5, 0.5, Vec3(0.7, 0., 0.));
   Material mirror(0.0, 1.0, 0.0, 0.0, Vec3(1, 1, 1));
+  Material mirrorAttenuated(0.3, 0.8, 0.0, 0.0, Vec3(1, 1, 1));
   CollisionChecker collisionChecker;
   double groundRadius=300;
   Vec3 groundCenter(0.0, -groundRadius, 1.0);
@@ -81,23 +82,24 @@ int main(int, char **)
   collisionChecker.addSphere(bigBall);
   */
   // reflective wall
-  auto quadSize = bigBallRadius * 3.0;
+  auto quadW = 15.0;
+  auto quadH = 5.0;
   auto quadDepth = 5.1 + bigBallDepth;
-  auto quad = std::make_shared<FramedQuad>(Vec3(-quadSize / 2.0, 0.001, quadDepth),
-      Vec3(quadSize, 0.0, 0.0),
-      Vec3(0.0, quadSize, 0.0),
+  auto quad = std::make_shared<FramedQuad>(Vec3(-quadW / 2.0, 0.0, quadDepth),
+      Vec3(quadW, 0.0, 0.0),
+      Vec3(0.0, quadH, 0.0),
       0.2,
-      blueStuff,
+      mirrorAttenuated,
       redStuff);
   bigWorld.addShape(quad.get());
   
   unsigned int addedSpheres = 0;
-  while (addedSpheres < 100) {
+  while (addedSpheres < 300) {
     auto x = getRand(-20.0, 20.0);
-    double radius = 0.3;
+    double radius = 0.5;
     //auto y = getRand(radius, radius + 5.0);
     auto y = 0.0;
-    auto z = getRand(-10, 40);
+    auto z = getRand(-20, quadDepth - 5.0);
     Vec3 position(x,y,z);
     auto cp = groundCenter - position;
     position += cp.getNormalized() * (cp.norm() - groundRadius - radius);
@@ -119,12 +121,12 @@ int main(int, char **)
   BVH smallWorldBVH(smallWorld.getShapes());
   world.addShape(&smallWorldBVH);
   double fov = 30;
-  double raysPerPixel = 10;
+  double raysPerPixel = 100;
   double aspectRatio = 1.5;
-  unsigned int imageWidth = 600;
+  unsigned int imageWidth = 2000;
   Vec3 lookFrom(0, 6, -20);
   Vec3 lookAt(0.0, 1.0, 0.0);
-  unsigned int cores = 4;
+  unsigned int cores = 10;
   std::cout << "Start ray tracing" << std::endl;
   Camera camera(aspectRatio, imageWidth, fov, raysPerPixel, lookFrom, lookAt, cores);
   camera.render(world);
