@@ -8,8 +8,8 @@
 #include <limits>
 #include <random>
 #include <thread>
-#include "Common.hpp"
-#include "Shape.hpp"
+#include "Hit.hpp"
+#include "shapes/Shape.hpp"
 #include "Image.hpp"
 
 #define PI 3.14159265

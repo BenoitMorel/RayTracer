@@ -5,12 +5,14 @@
 #include <vector>
 #include "Shape.hpp"
 
+
 class Shapes : public Shape {
   public:
     Shapes() {}
     virtual ~Shapes() {}
-    void addShape(Shape *shape) {_shapes.push_back(shape);
-      _aabb.unionWith(shape->getAABB());
+    void addShape(Shape *shape) {
+      _shapes.push_back(shape);
+      getAABB().unionWith(shape->getAABB());
     }
     virtual bool hit(const Ray &ray, double minDist, Hit &hit) const {
       bool ok = false;

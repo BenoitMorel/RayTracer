@@ -1,9 +1,6 @@
 #pragma once
 
-#include "Vec3.hpp"
-#include "Shape.hpp"
 #include "Shapes.hpp"
-
 
 /**
  * Create a framed quad using one Quad in front of another
@@ -23,8 +20,10 @@ class FramedQuad : public Shape {
       _out = std::make_shared<Quad>(corner, side1, side2, frameMaterial);
       _shapes.addShape(_in.get());
       _shapes.addShape(_out.get());
-      _aabb = _shapes.getAABB();
+      setAABB(_shapes.getAABB());
     }
+
+    virtual ~FramedQuad() {}
     
     virtual bool hit(const Ray &ray, double minDist, Hit &hit) const {
       return _shapes.hit(ray, minDist, hit);

@@ -1,12 +1,13 @@
 #include <iostream>
 #include <assert.h>
 #include <chrono>
-#include "Common.hpp"
-#include "Shape.hpp"
-#include "Shapes.hpp"
+#include "shapes/Shape.hpp"
+#include "shapes/Shapes.hpp"
+#include "shapes/Sphere.hpp"
+#include "shapes/Quad.hpp"
 #include "Camera.hpp"
-#include "BVH.hpp"
-#include "FramedQuad.hpp"
+#include "shapes/BVH.hpp"
+#include "shapes/FramedQuad.hpp"
 
 /*
  *  A few unit tests
@@ -121,9 +122,9 @@ int main(int, char **)
   BVH smallWorldBVH(smallWorld.getShapes());
   world.addShape(&smallWorldBVH);
   double fov = 30;
-  double raysPerPixel = 100;
+  double raysPerPixel = 1;
   double aspectRatio = 1.5;
-  unsigned int imageWidth = 2000;
+  unsigned int imageWidth = 1000;
   Vec3 lookFrom(0, 6, -20);
   Vec3 lookAt(0.0, 1.0, 0.0);
   unsigned int cores = 10;

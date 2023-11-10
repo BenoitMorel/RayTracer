@@ -1,10 +1,6 @@
 #pragma once
 
- #include <limits>
- #include <random>
- #include "Vec3.hpp"
-
- class Shape;
+#include "Vec3.hpp"
 
 class Ray {
   public: 
@@ -21,13 +17,3 @@ class Ray {
     Vec3 _o;
     Vec3 _d;
 };
-
-struct Hit {
-  Hit(): dist(std::numeric_limits<double>::max()),
-    shape(nullptr) {}
-  Vec3 point;
-  Vec3 normal;
-  double dist;
-  const Shape * shape;
-};
-

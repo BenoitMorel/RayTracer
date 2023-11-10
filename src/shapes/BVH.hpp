@@ -4,7 +4,7 @@
 #include <vector>
 #include <assert.h>
 #include <algorithm>
-#include "AABB.hpp"
+#include "../AABB.hpp"
 
 using ShapeSet = std::unordered_set<Shape *>;
 
@@ -80,6 +80,8 @@ public:
     ok |= _right->hit(ray, minDist, hit);
     return ok;
   }
+
+  const AABB &getAABB() const {return _aabb;}
 private:
   bool _isLeaf;
   std::shared_ptr<BVHNode> _left;
@@ -99,7 +101,9 @@ public:
    *  Constructor
    *  @param shapes Shapes to be stored in the BVH
    */
-  BVH(const std::vector<Shape *> &shapes): _root(shapes, 0) { }
+  BVH(const std::vector<Shape *> &shapes): _root(shapes, 0) { 
+    setAABB(_root.getAABB());
+  }
   
   virtual bool hit(const Ray &ray, double minDist, Hit &hit) const {
     return _root.hit(ray, minDist, hit);
