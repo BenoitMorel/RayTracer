@@ -49,7 +49,7 @@ std::shared_ptr<Scene> createSceneFramedMirror(unsigned int imageWidth,
   auto quadW = 15.0;
   auto quadH = 5.0;
   auto quadDepth = 5.1 + bigBallDepth;
-  auto quad = std::make_shared<FramedQuad>(Vec3(-quadW / 2.0, 0.0, quadDepth),
+  auto quad = std::make_shared<FramedQuad>(Vec3(-quadW * 2.0, quadH / 2.0, quadDepth),
       Vec3(quadW, 0.0, 0.0),
       Vec3(0.0, quadH, 0.0),
       0.2,

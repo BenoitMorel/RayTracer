@@ -12,7 +12,6 @@
 #include "shapes/Shape.hpp"
 #include "Image.hpp"
 
-#define PI 3.14159265
 
 /**
  * Caracteristics of  the camera (position, orientation etc.) and
@@ -137,6 +136,10 @@ class Camera {
         averageColor[2] = sqrt(averageColor[2]);
         */
         // from [0,1] to [0, 255]
+        
+        for (unsigned int i = 0; i < 3; ++i) {
+          averageColor[i] = std::min(1.0, averageColor[i]);
+        }
         averageColor *= 255.0;
         image(x, y) = averageColor;
       }
@@ -148,7 +151,7 @@ class Camera {
     */
     void _updateParameters() {
       _imageHeight = static_cast<unsigned int>(static_cast<double>(_imageWidth) / _aspectRatio);
-      auto theta = _vfov * PI / 180.0;
+      auto theta = _vfov * M_PI / 180.0;
       auto focal = (_lookAt - _lookFrom).norm();
       _vpHeight = 2 * tan(theta / 2.0) * focal;
       _vpWidth = _vpHeight * _aspectRatio;

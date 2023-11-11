@@ -43,6 +43,7 @@ class Vec3 {
     inline Vec3 &operator+=(const Vec3 &v) {_v[0] += v[0]; _v[1] += v[1]; _v[2] += v[2]; return *this;} 
     inline Vec3 &operator-=(const Vec3 &v) {_v[0] -= v[0]; _v[1] -= v[1]; _v[2] -= v[2]; return *this;} 
     inline Vec3 &operator=(const Vec3 &v) {_v[0] = v[0]; _v[1] = v[1]; _v[2] = v[2]; return *this;}
+    inline Vec3 operator-() const {return Vec3(-_v[0], -_v[1],-_v[2]);}
     
     /**
      *  command float operations

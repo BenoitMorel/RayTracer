@@ -27,6 +27,7 @@ class Material {
         double getDiffusion() const {return _diffusion;}
         double getAmbiant() const {return _ambiant;}
         const Vec3 &getColor() const {return _color;}
+        void setColor(const Vec3 &color) {_color = color;}
 
     private:
         double _absorbtion;
