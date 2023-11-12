@@ -34,9 +34,16 @@ class Camera {
       _lookUp(0.0, 1.0, 0.0),
       _vpWidth(0.0),
       _vpHeight(0.0),
-      _cores(cores)
+      _cores(cores),
+      _background1(1.0, 1.0, 1.0),
+      _background2(0.5, 0.5, 1.0)
     {
 
+    }
+
+    void setBackgrounds(const Vec3 &b1, const Vec3 &b2) {
+      _background1 = b1;
+      _background2 = b2;
     }
 
     Vec3 getRayColor(const Ray &ray, const Shape &world, unsigned int depth) const {
@@ -72,8 +79,8 @@ class Camera {
             }
         } else {
             auto t = 0.5 * (ray.direction()[1] + 1.0);
-            color = Vec3(1.0, 1.0, 1.0) * (1.0-t) + Vec3(0.5, 0.5, 1.0) * t;
-            //color = Vec3(0.5, 0.5, 1.);
+            color = _background1 * (1.0-t) + _background2 * t;
+            //color = Vec3(0.1, 0.1, 0.1);
         }
         return color;
     }
@@ -183,4 +190,6 @@ class Camera {
     Vec3 _cellOffsetDown; // offset of one window cell (pixel) below
     Vec3 _vpCorner; // position of the top left corner of the viewport 
     unsigned int _cores;
+    Vec3 _background1;
+    Vec3 _background2;
 };

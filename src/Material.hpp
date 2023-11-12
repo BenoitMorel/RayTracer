@@ -28,6 +28,7 @@ class Material {
         double getAmbiant() const {return _ambiant;}
         const Vec3 &getColor() const {return _color;}
         void setColor(const Vec3 &color) {_color = color;}
+        void multiplyColor(double v) {_color = _color * v;}
 
     private:
         double _absorbtion;

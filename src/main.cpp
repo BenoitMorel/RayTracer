@@ -13,8 +13,8 @@
 int main(int, char **)
 {
   auto start = std::chrono::high_resolution_clock::now();
-  unsigned int imageWidth = 400;
-  double raysPerPixel = 20;
+  unsigned int imageWidth = 1200;
+  double raysPerPixel = 500;
   unsigned int cores = 10;
   std::cout << "Creating scene..." << std::endl;
 

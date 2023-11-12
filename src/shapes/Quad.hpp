@@ -59,6 +59,9 @@ class Quad : public Shape {
     hit.point = P;
     hit.dist = t;
     hit.normal = _normal.getNormalized();
+    if (hit.normal * ray.direction() > 0.0) {
+      hit.normal = -hit.normal;
+    }
     hit.shape = this;
     return true;
   }

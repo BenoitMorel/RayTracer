@@ -11,129 +11,124 @@
 #include "../shapes/Axis.hpp"
 
 
-void addAxis(Scene *scene) {
-    double axisWidth = 1.0;
-    double axisLength = 5.0;
+class TrafficLights: public Shapes {
+public:
+    TrafficLights(Vec3 center, 
+        double scaler,
+        double lightIntensity,
+        unsigned int state) :
+            darkDiffuse(0.8, 0.0, 0.2, 0.0, Vec3(1.0, 1.0, 1.0)),
+            redLight(0.0, 0.0, 0.0, 1.0, Vec3(1.0, 0.0, 0.0)),
+            orangeLight(0.0, 0.0, 0.0, 1.0, Vec3(1.0, 0.5, 0.0)),
+            greenLight(0.0, 0.0, 0.0, 1.0, Vec3(0, 1.0, 0.0))
+    {
+        double attenuation = 0.2;
+        
+        if (state == 0) {
+            redLight.multiplyColor(lightIntensity);
+            orangeLight.multiplyColor(attenuation);
+            greenLight.multiplyColor(attenuation);
+        } else if (state == 1) {
+            redLight.multiplyColor(attenuation);
+            orangeLight.multiplyColor(lightIntensity);
+            greenLight.multiplyColor(attenuation);
+        } else if (state == 2) {
+            redLight.multiplyColor(attenuation);
+            orangeLight.multiplyColor(attenuation);
+            greenLight.multiplyColor(lightIntensity);
+        } else {
+            assert(false);
+        }
+        auto poleLength = 7.0 * scaler;
+        center[1] += poleLength;
+        auto boxWidth = scaler;
+        auto boxHeight = scaler * 3.0;
+        auto box = std::make_shared<Parallelepiped>(center - Vec3(boxWidth / 2.0, 0.0, boxWidth / 2.0), 
+            Vec3(boxWidth, 0.0, 0.0),
+            Vec3(0.0, boxHeight, 0.0),
+            Vec3(0.0, 0.0, boxWidth),
+            darkDiffuse);
+        _buffer.push_back(box);
+        addShape(box.get());
+        
+        auto poleWidth = scaler / 4.0;
+        auto pole = std::make_shared<Parallelepiped>(center - Vec3(poleWidth / 2.0, 0.0, poleWidth /2.0), 
+            Vec3(poleWidth, 0.0, 0.0),
+            Vec3(0.0, -poleLength, 0.0),
+            Vec3(0.0, 0.0, poleWidth),
+            darkDiffuse);
+        _buffer.push_back(pole);
+        addShape(pole.get());
+        double baseLength = scaler * 4.0;
+        double baseHight = scaler * 0.3;
+        auto base = std::make_shared<Parallelepiped>(center + Vec3(-baseLength / 2.0, -poleLength, -baseLength / 2.0), 
+            Vec3(baseLength, 0.0, 0.0),
+            Vec3(0.0, baseHight, 0.0),
+            Vec3(0.0, 0.0, baseLength),
+            darkDiffuse);
+        _buffer.push_back(base);
+        addShape(base.get());
+        auto  ballRadius = scaler * 0.3   ;
+        auto ballX = 0.0; // scaler * 0.5;
+        auto ballY = scaler * 1.5;
+        auto ballZ = scaler * 0.4;
+        auto ball1 = std::make_shared<Sphere>(center + Vec3(ballX, ballY + scaler       , ballZ), ballRadius, redLight);
+        auto ball2 = std::make_shared<Sphere>(center + Vec3(ballX, ballY + 0.0          , ballZ), ballRadius, orangeLight);
+        auto ball3 = std::make_shared<Sphere>(center + Vec3(ballX, ballY -scaler        , ballZ), ballRadius, greenLight);
+        _buffer.push_back(ball1);
+        addShape(ball1.get());
+        _buffer.push_back(ball2);
+        addShape(ball2.get());
+        _buffer.push_back(ball3);
+        addShape(ball3.get());
+    }
+private:
+    std::vector<std::shared_ptr<Shape> > _buffer;
+    Material darkDiffuse;
+    Material redLight;
+    Material orangeLight;
+    Material greenLight;
+};
 
-    auto redMaterial = std::make_shared<Material>(0.0, 0.0, 0.0, 1.0, Vec3(1.0, 0.0, 0.0));
-    auto greenMaterial = std::make_shared<Material>(0.0, 0.0, 0.0, 1.0, Vec3(0.0, 1.0, 0.0));
-    auto blueMaterial = std::make_shared<Material>(0.0, 0.0, 0.0, 1.0, Vec3(0.0, 0.0, 1.0));
-    scene->materials.push_back(redMaterial);
-    scene->materials.push_back(greenMaterial);
-    scene->materials.push_back(blueMaterial);
-
-    auto xaxis = std::make_shared<Parallelepiped>(Vec3(0, -axisWidth/2.0, -axisWidth/2.0),
-        Vec3(0, 0, axisWidth),
-        Vec3(axisLength, 0, 0),
-        Vec3(0, axisWidth, 0.0),
-        *redMaterial);
-    scene->addBigShape(xaxis);
-
-    auto yaxis = std::make_shared<Parallelepiped>(Vec3(-axisWidth/2.0, 0.0, -axisWidth/2.0),
-        Vec3(axisWidth, 0, 0),
-        Vec3(0, axisLength, 0),
-        Vec3(0, 0.0, axisWidth),
-        *greenMaterial);
-    scene->addBigShape(yaxis);
-
-    auto zaxis = std::make_shared<Parallelepiped>(Vec3(-axisWidth/2.0, -axisWidth/2.0, 0.0),
-        Vec3(axisWidth, 0, 0),
-        Vec3(0, axisWidth, 0),
-        Vec3(0, 0.0, axisLength),
-        *blueMaterial);
-    scene->addBigShape(zaxis);
-}
 
 std::shared_ptr<Scene> createSceneParallelepiped(unsigned int imageWidth,
   unsigned int raysPerPixel,
   unsigned int cores) 
 {
-  auto scene = std::make_shared<Scene>();
-  
-  auto diffuseGreen = std::make_shared<Material>(0.0, 0.0, 1.0, 0.0, Vec3(0., 0.5, 0.));
-  auto greenMetal = std::make_shared<Material>(0.0, 0.5, 0.0, 0.0, Vec3(0., 0.5, 0.));
-  auto blueStuff = std::make_shared<Material>(0.0, 0.0, 1.0, 0.0, Vec3(0., 0., 0.7));
-  auto redStuff = std::make_shared<Material>(0.0, 0.0, 0.5, 0.5, Vec3(0.7, 0., 0.));
-  auto mirror = std::make_shared<Material>(0.0, 1.0, 0.0, 0.0, Vec3(1, 1, 1));
-  auto light = std::make_shared<Material>(0.0, 0.0, 0.0, 1.0, Vec3(10.0, 10.0, 10.0));
-  auto redLight = std::make_shared<Material>(0.0, 0.0, 0.0, 1.0, Vec3(10.0, 0.0, 0.0));
-  auto blueLight = std::make_shared<Material>(0.0, 0.0, 0.0, 1.0, Vec3(0.0, 0.0, 10.0));
-  auto greenLight = std::make_shared<Material>(0.0, 0.0, 0.0, 1.0, Vec3(0.0, 10.0, 0.0));
-  auto mirrorAttenuated = std::make_shared<Material>(0.3, 0.8, 0.0, 0.0, Vec3(1, 1, 1));
+    auto scene = std::make_shared<Scene>();
 
-  scene->materials.push_back(diffuseGreen);
-  scene->materials.push_back(greenMetal);
-  scene->materials.push_back(blueStuff);
-  scene->materials.push_back(redStuff);
-  scene->materials.push_back(mirror);
-  scene->materials.push_back(mirrorAttenuated);
+    auto attenuatedMirror = std::make_shared<Material>(0.4, 0.6, 0.1, 0.0, Vec3(1, 1, 1));
+    Vec3 pink = Vec3(255,192,203) / 255.0;
+    auto light = std::make_shared<Material>(0.0, 0.0, 0.0, 1.0, Vec3(10, 10, 10));
+    auto pinkLight = std::make_shared<Material>(0.0, 0.0, 0.0, 1.0, pink * 10.0);
+    attenuatedMirror->setFuzz(0.015);
+ 
+    scene->materials.push_back(attenuatedMirror);
+    scene->materials.push_back(light);
 
-  scene->addBigShape(std::make_shared<Axis>(Vec3(), 0.5, 5.0));
-  double groundRadius = 300;
-  Vec3 groundCenter(0.0, -groundRadius, 1.0);
-  auto bigBallRadius = 2.5;
-  auto bigBallDepth = 5.0;
-  // ground
-  auto ground = std::make_shared<Sphere>(groundCenter, groundRadius, *blueStuff);
-  scene->addBigShape(ground);
-  scene->collisionManager.addSphere(ground);
-  // light ball
-  auto lightBall = std::make_shared<Sphere>(Vec3(0, 1.0, -3.0), 0.5, *light);
-  scene->addBigShape(lightBall);
+    double groundSize = 20.0;
+    auto ground = std::make_shared<Quad>(Vec3(-groundSize / 2.0, 0.0, -groundSize/ 2.0), 
+            Vec3(groundSize, 0.0, 0.0),
+            Vec3(0.0, 0.0, groundSize), 
+            *attenuatedMirror);
+    scene->addBigShape(ground);
 
-  auto parallelepiped = std::make_shared<Parallelepiped>(Vec3(0.0, 1.0, 1.0), 
-    Vec3(1.0, 0.0, 0.0),
-    Vec3(0.0, 1.0, 0.0),
-    Vec3(0.0, 0.0, 1.0),
-    *greenMetal);
-    scene->addSmallShape(parallelepiped);
-
-  auto parallelepiped2 = std::make_shared<Parallelepiped>(Vec3(3.0, 1.0, 1.0), 
-    Vec3(1.0, 0.0, 0.0),
-    Vec3(0.0, 1.0, 0.0),
-    Vec3(0.0, 0.0, 1.0),
-    *redStuff);
-    scene->addSmallShape(parallelepiped2);
-
-  auto parallelepiped3 = std::make_shared<Parallelepiped>(Vec3(-3.0, 1.0, 1.0), 
-    Vec3(1.0, 0.0, 0.0),
-    Vec3(0.0, 1.0, 0.0),
-    Vec3(0.0, 0.0, 1.0),
-    *mirror);
-    scene->addSmallShape(parallelepiped3);
-  
-  unsigned int addedSpheres = 0;
-  while (addedSpheres < 10) {
-    auto x = getRand(-20.0, 20.0);
-    double radius = 0.5;
-    //auto y = getRand(radius, radius + 5.0);
-    auto y = 0.0;
-    auto z = getRand(-10,  0.0);
-    Vec3 position(x,y,z);
-    auto cp = groundCenter - position;
-    position += cp.getNormalized() * (cp.norm() - groundRadius - radius);
-    std::shared_ptr<Material> material;
-    //Vec3 color = Vec3::getRandomVector(0.0, 1.0);
-    auto r = getRand();
-    if (r < 0.33) {
-      material = redLight;
-    } else if (r < 0.66) {
-      material = greenLight;
-    } else {
-      material = blueLight;
+    //scene->addBigShape(std::make_shared<Axis>(Vec3(), 0.5, 5.0));
+    for (int i = 0; i < 3; ++i) {
+        double intensity = 10.0;
+        auto trafficLights = std::make_shared<TrafficLights>(Vec3(double(i - 1) * 4.0, 0.0, 0.0), 0.5, intensity, i);
+        scene->addBigShape(trafficLights);
     }
-    auto shape = std::make_shared<Sphere>(position, radius, *material);
-    if (scene->collisionManager.canAddSphere(shape)) {
-      scene->addSmallShape(shape);
-      scene->collisionManager.addSphere(shape);
-      addedSpheres++;
-    } 
-  }
-  double fov = 30;
-  double aspectRatio = 1.5;
-  Vec3 lookFrom(5, 6, 20);
-  Vec3 lookAt(0.0, 1.0, 0.0);
-  scene->camera = std::make_shared<Camera>(aspectRatio, imageWidth, fov, raysPerPixel, lookFrom, lookAt, cores);
+    //auto moon = std::make_shared<Quad>(Vec3(20, 20, 20), Vec3(20.0, 0.0, 0.0), Vec(0.0, 0.0, 0.0), light);
+    auto moon = std::make_shared<Sphere>(Vec3(20, 10, 10), 10.0, *pinkLight);
+    scene->addBigShape(moon);
 
+
+  double fov = 20;
+  double aspectRatio = 1.0;
+  Vec3 lookFrom(5, 20, 30);
+  Vec3 lookAt(0.0, 0.0, 0.0);
+  scene->camera = std::make_shared<Camera>(aspectRatio, imageWidth, fov, raysPerPixel, lookFrom, lookAt, cores);
+  scene->camera->setBackgrounds(Vec3(0.2, 0.2, 0.3),Vec3(0.2, 0.2, 0.5));
   return scene;
 }
